@@ -1,183 +1,189 @@
 # 🛡️ Production-Ready Node.js Auth & RESTful API Starter
 
-ชุด **Starter Boilerplate / Microservice Backend** สำหรับระบบ **Authentication & Authorization (RBAC)** พร้อมใช้งาน พัฒนาด้วย **Node.js, TypeScript, Express.js, Prisma ORM, PostgreSQL, Zod, และ Swagger UI** ออกแบบตามสถาปัตยกรรมแบบ Clean Layered Architecture เพื่อให้นำไปต่อยอดใช้กับโปรเจกต์ใหม่ๆ หรือ Microservices ได้ทันที
+A production-ready, reusable **Authentication & Authorization (RBAC)** backend starter template built with **Node.js, TypeScript, Express.js, Prisma ORM, PostgreSQL, Zod, and Swagger UI**. Designed using **Clean Layered Architecture** for maximum reusability across web apps, mobile backends, and microservices.
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue.svg?logo=typescript)](https://www.typescriptlang.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21-lightgrey.svg?logo=express)](https://expressjs.com/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2D3748.svg?logo=prisma)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791.svg?logo=postgresql)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 🌟 จุดเด่นและฟีเจอร์หลัก (Key Features)
+## 🌟 Key Features
 
-- 🔒 **Dual-Token JWT Authentication**: 
-  - **Access Token** (อายุสั้น ปลอดภัยสูง) + **Refresh Token** (อายุยาว บันทึกใน Database)
-  - **Token Rotation & Reuse Detection**: หมุนเวียน Refresh Token ทุกครั้งที่ขอ Token ใหม่ พร้อมตรวจจับการนำ Token เดิมมาใช้ซ้ำ (หากพบจะตัดสิทธิ์ทุก Session ทันที)
-  - **Session Management**: รองรับการ Logout เฉพาะเครื่อง หรือ Logout All Devices (ออกจากระบบทุกอุปกรณ์)
+- 🔒 **Dual-Token JWT Authentication**:
+  - **Access Token** (short-lived, 15m) + **Refresh Token** (long-lived, 7d, persisted in database).
+  - **Token Rotation & Reuse Detection**: Rotates the refresh token upon every renewal. Detects and revokes all active sessions immediately if token reuse occurs.
+  - **Session Management**: Supports single-device logout (`/auth/logout`) and global logout across all devices (`/auth/logout-all`).
 - 🌐 **Hybrid Token Transport**:
-  - รองรับทั้ง **Authorization: Bearer `<token>`** (สำหรับ Mobile App, Microservices, Postman)
-  - รองรับ **HttpOnly Cookies** (สำหรับ Web App เช่น Next.js, React, Vue เพื่อป้องกันการโจมตี XSS)
+  - Supports **`Authorization: Bearer <token>`** header (ideal for Mobile Apps, Microservices, Postman).
+  - Supports **`HttpOnly` Secure Cookies** (ideal for Web SPAs like Next.js, React, Vue to prevent XSS token theft).
 - 👥 **Role-Based Access Control (RBAC)**:
-  - กำหนด Role: `USER`, `ADMIN`, `SUPERADMIN`
-  - มี Middleware `requireRoles(...)` และ `requireMinRole(...)` ใช้งานง่าย
-- 🔑 **Password Recovery**:
-  - ลืมรหัสผ่าน (Forgot Password) / ตั้งรหัสใหม่ (Reset Password) ผ่าน Cryptographic Token ส่งทาง Email (Nodemailer)
-  - รองรับ **Mock Mode** แสดง Token ทาง Console ในช่วง Development โดยไม่ต้องตั้งค่า SMTP
+  - Default Roles: `USER`, `ADMIN`, `SUPERADMIN`.
+  - Simple, reusable middleware guards: `requireRoles(...)` and `requireMinRole(...)`.
+- 🔑 **Password Recovery & Email Service**:
+  - Secure Forgot Password & Reset Password flow using SHA-256 hashed cryptographic tokens.
+  - Transactional email service with Nodemailer (supports real SMTP and automatic console Mock mode in development).
 - 🛡️ **Security & Validation**:
-  - **Zod**: Type-safe Schema Validation ตรวจสอบ Request Body/Query/Params แบบเข้มงวด
-  - **Helmet**: ป้องกัน HTTP Header ช่องโหว่ยอดนิยม
-  - **CORS**: รองรับ Cross-Origin Resource Sharing พร้อม Credentials/Cookies
-  - **Rate Limiting**: ป้องกันการ Brute Force ล็อกอินด้วย `express-rate-limit`
-  - **Bcrypt**: เข้ารหัส Password ด้วย Salt Rounds มาตรฐาน
-- 📚 **Interactive Swagger / OpenAPI 3.0**:
-  - ดูคู่มือและทดสอบ API ผ่าน Web Browser ได้ทันทีที่ `/api-docs`
+  - **Zod**: Strict, type-safe schema validation for request bodies, query params, and URL params.
+  - **Helmet**: Essential HTTP security headers.
+  - **CORS**: Configurable cross-origin resource sharing with credentials support.
+  - **Rate Limiting**: Brute-force attack prevention on sensitive auth endpoints using `express-rate-limit`.
+  - **Bcrypt**: Salted password hashing with 12 rounds.
+- 📚 **Interactive Swagger / OpenAPI 3.0 Docs**:
+  - Live interactive API documentation and testing playground at `/api-docs`.
 - 🐳 **Docker & Container Ready**:
-  - มี `Dockerfile` (Multi-stage build) และ `docker-compose.yml` (PostgreSQL + App) รันได้ในคำสั่งเดียว
+  - Includes multi-stage `Dockerfile` and `docker-compose.yml` for zero-configuration PostgreSQL + App deployment.
 
 ---
 
-## 📁 โครงสร้างโปรเจกต์ (Project Structure)
+## 📁 Project Architecture & Directory Structure
 
 ```text
 auth/
-├── .env.example              # ตัวอย่าง Environment Variables
-├── .env                      # ไฟล์ Environment สำหรับ Development
-├── Dockerfile                # Docker Multi-stage build
-├── docker-compose.yml        # PostgreSQL + Node.js App
-├── package.json              # รายการ Dependencies และ Scripts
-├── tsconfig.json             # การตั้งค่า TypeScript
+├── .env.example              # Environment variables template
+├── .env                      # Local development environment config
+├── Dockerfile                # Multi-stage production Dockerfile
+├── docker-compose.yml        # PostgreSQL + Node.js application service
+├── package.json              # Project dependencies and npm scripts
+├── tsconfig.json             # TypeScript compiler settings
 ├── prisma/
-│   ├── schema.prisma         # Database Models (User, RefreshToken, PasswordResetToken)
-│   └── seed.ts               # ข้อมูลเริ่มต้นสำหรับทดสอบ (Superadmin, Admin, User)
+│   ├── schema.prisma         # Database schema (User, RefreshToken, PasswordResetToken)
+│   └── seed.ts               # Database seeder (Superadmin, Admin, User)
 └── src/
-    ├── app.ts                # การตั้งค่า Express App, Middlewares, และ Routes
-    ├── server.ts             # Entry point ของ Server พร้อม Graceful Shutdown
+    ├── app.ts                # Express application setup, middlewares, and router mounts
+    ├── server.ts             # Server entry point with graceful shutdown handling
     ├── config/
-    │   ├── env.ts            # ตรวจสอบ Environment Variables ด้วย Zod
-    │   ├── prisma.ts         # Prisma Client Singleton
-    │   └── swagger.ts        # การตั้งค่า Swagger / OpenAPI
+    │   ├── env.ts            # Environment variable validation with Zod (fail-fast)
+    │   ├── prisma.ts         # Prisma client singleton
+    │   └── swagger.ts        # OpenAPI 3.0 / Swagger JSDoc configuration
     ├── constants/
-    │   └── roles.ts          # ค่าคงที่ Role และ Role Hierarchy
+    │   └── roles.ts          # Role constants and hierarchy definitions
     ├── errors/
-    │   └── app-error.ts      # Custom Error Classes (400, 401, 403, 404, 409, 429)
+    │   └── app-error.ts      # Custom HTTP error classes (400, 401, 403, 404, 409, 429)
     ├── middlewares/
-    │   ├── auth.middleware.ts       # ตรวจสอบ Hybrid Token & ตรวจสอบสิทธิ์ RBAC
-    │   ├── error.middleware.ts      # Centralized Global Error Handler
-    │   ├── rate-limiter.middleware.ts # Rate Limiting
-    │   └── validate.middleware.ts   # Zod Validation Middleware
+    │   ├── auth.middleware.ts       # Hybrid JWT verification & RBAC authorization guards
+    │   ├── error.middleware.ts      # Centralized global error handling middleware
+    │   ├── rate-limiter.middleware.ts # API and Auth rate limiters
+    │   └── validate.middleware.ts   # Zod request validation middleware
     ├── schemas/
-    │   ├── auth.schema.ts    # Zod Schemas สำหรับ Auth
-    │   └── user.schema.ts    # Zod Schemas สำหรับ User Management
+    │   ├── auth.schema.ts    # Zod validation schemas for auth endpoints
+    │   └── user.schema.ts    # Zod validation schemas for user management
     ├── services/
-    │   ├── auth.service.ts   # Business Logic ด้าน Authentication & Token
-    │   ├── user.service.ts   # Business Logic ด้าน User & RBAC
-    │   └── email.service.ts  # บริการส่งอีเมล (SMTP / Mock Console)
+    │   ├── auth.service.ts   # Business logic for auth, tokens, sessions, password reset
+    │   ├── user.service.ts   # Business logic for user profiles, password, and RBAC
+    │   └── email.service.ts  # Transactional email service (SMTP / Mock)
     ├── controllers/
-    │   ├── auth.controller.ts # Handlers สำหรับ Auth
-    │   └── user.controller.ts # Handlers สำหรับ User
+    │   ├── auth.controller.ts # Request handlers for authentication
+    │   └── user.controller.ts # Request handlers for user operations
     ├── routes/
-    │   ├── index.ts          # Master Router & Health check
-    │   ├── auth.routes.ts    # เส้นทาง API สำหรับ Auth พร้อม Swagger Doc
-    │   └── user.routes.ts    # เส้นทาง API สำหรับ User พร้อม RBAC
+    │   ├── index.ts          # Master API router with health check endpoint
+    │   ├── auth.routes.ts    # Auth endpoints with Swagger OpenAPI annotations
+    │   └── user.routes.ts    # RBAC-protected user management routes
     ├── types/
-    │   └── express.d.ts      # Type Definitions เสริมสำหรับ Express Request
+    │   └── express.d.ts      # Extended Express Request types (req.user, req.token)
     └── utils/
-        ├── hash.util.ts      # ฟังก์ชัน Hash Password & Token
-        ├── jwt.util.ts       # ฟังก์ชันสร้าง/ตรวจสอบ JWT และ Cookie Management
-        ├── logger.util.ts    # Structured Logger
-        └── response.util.ts  # ฟังก์ชันส่ง Response JSON แบบมาตรฐาน
+        ├── hash.util.ts      # Bcrypt and cryptographic token hashing helpers
+        ├── jwt.util.ts       # JWT generation, verification, and cookie utilities
+        ├── logger.util.ts    # Structured logger
+        └── response.util.ts  # Standardized API response formatters
 ```
 
 ---
 
-## 🚀 เริ่มต้นใช้งาน (Quick Start)
+## 🚀 Getting Started
 
-### วิธีที่ 1: รันด้วย Docker Compose (แนะนำ สะดวกที่สุด)
+### Option 1: Run with Docker Compose (Recommended)
 
-รัน Database PostgreSQL พร้อมกับ Backend Application ทันที:
+Start the PostgreSQL database and Node.js backend with one command:
 
 ```bash
 docker-compose up -d
 ```
 
-เข้าถึงระบบ:
-- **API Health Check**: `http://localhost:5000/api/v1/health`
-- **Swagger UI API Docs**: `http://localhost:5000/api-docs`
+- **Health Check:** `http://localhost:5000/api/v1/health`
+- **Swagger UI:** `http://localhost:5000/api-docs`
 
 ---
 
-### วิธีที่ 2: รันบนเครื่อง Local (Development)
+### Option 2: Run Locally (Development)
 
-#### 1. ติดตั้ง Dependencies
+#### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-#### 2. ตั้งค่าไฟล์ `.env`
-คัดลอกไฟล์ `.env.example` เป็น `.env` และแก้ไขค่าเชื่อมต่อฐานข้อมูล:
+#### 2. Configure Environment Variables
+Copy `.env.example` to `.env` and configure your database connection string:
 ```bash
 cp .env.example .env
 ```
 
-#### 3. สั่งรัน Prisma Migration & Seed ข้อมูลทดสอบ
+#### 3. Run Prisma Migrations & Seed Database
 ```bash
-# สร้าง Table ใน Database
+# Run database migrations
 npm run prisma:migrate
 
-# Seed ข้อมูลผู้ใช้เริ่มต้น
+# Seed initial admin & user accounts
 npm run prisma:seed
 ```
 
-#### 4. เริ่มต้นรันเซิร์ฟเวอร์ในโหมด Dev
+#### 4. Start Development Server
 ```bash
 npm run dev
 ```
 
 ---
 
-## 👥 บัญชีผู้ใช้เริ่มต้นจาก Seeding (Default Accounts)
+## 👥 Default Seed Accounts
 
-รหัสผ่านสำหรับทุกบัญชีคือ: **`Password123!`**
+The default password for all seed accounts is: **`Password123!`**
 
-| Email | Role | สิทธิ์การเข้าถึง |
+| Email | Role | Access Permissions |
 |---|---|---|
-| `superadmin@example.com` | `SUPERADMIN` | จัดการผู้ใช้ทั้งหมด, เปลี่ยน Role เป็น Superadmin ได้ |
-| `admin@example.com` | `ADMIN` | จัดการผู้ใช้ทั่วไป และดูรายการผู้ใช้ทั้งหมดได้ |
-| `user@example.com` | `USER` | แก้ไขข้อมูลส่วนตัวของตนเอง |
+| `superadmin@example.com` | `SUPERADMIN` | Full access, manage all users and promote to Superadmin |
+| `admin@example.com` | `ADMIN` | Manage standard users and view user list |
+| `user@example.com` | `USER` | Manage personal profile and credentials |
 
 ---
 
-## 📌 รายการ API Endpoints (API Specification)
+## 📌 API Endpoints Reference
 
-Prefix ทั้งหมดอยู่ที่: `/api/v1`
+Base API Path: `/api/v1`
 
 ### 1. Authentication (`/api/v1/auth`)
 
-| Method | Endpoint | คำอธิบาย | สิทธิ์ (Auth) |
+| Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| `POST` | `/auth/register` | ลงทะเบียนผู้ใช้ใหม่ | Public |
-| `POST` | `/auth/login` | เข้าสู่ระบบ (รับ JWT + ตั้งค่า Cookie) | Public |
-| `POST` | `/auth/refresh` | ขอ Access Token ใหม่ด้วย Refresh Token | Public / Cookie |
-| `POST` | `/auth/logout` | ออกจากระบบเฉพาะเครื่องปัจจุบัน | Public / Cookie |
-| `POST` | `/auth/logout-all` | ออกจากระบบทุกอุปกรณ์ (Revoke All Sessions) | 🔒 Authenticated |
-| `POST` | `/auth/forgot-password` | ขอรับ Token รีเซ็ตรหัสผ่านทาง Email | Public |
-| `POST` | `/auth/reset-password` | รีเซ็ตรหัสผ่านใหม่ด้วย Token | Public |
-| `GET`  | `/auth/me` | ตรวจสอบข้อมูลผู้ใช้ที่กำลังล็อกอินอยู่ | 🔒 Authenticated |
+| `POST` | `/auth/register` | Register a new user account | Public |
+| `POST` | `/auth/login` | Log in with email & password (returns tokens & sets cookies) | Public |
+| `POST` | `/auth/refresh` | Obtain new access token via refresh token | Public / Cookie |
+| `POST` | `/auth/logout` | Log out from current session | Public / Cookie |
+| `POST` | `/auth/logout-all` | Log out from all devices (revokes all active sessions) | 🔒 Authenticated |
+| `POST` | `/auth/forgot-password` | Request password reset email | Public |
+| `POST` | `/auth/reset-password` | Reset password using received token | Public |
+| `GET`  | `/auth/me` | Fetch authenticated user summary | 🔒 Authenticated |
 
 ### 2. User & RBAC Management (`/api/v1/users`)
 
-| Method | Endpoint | คำอธิบาย | สิทธิ์ (Auth & RBAC) |
+| Method | Endpoint | Description | Required Role |
 |---|---|---|---|
-| `GET`   | `/users/profile` | ดูโปรไฟล์ตนเอง | 🔒 Authenticated |
-| `PUT`   | `/users/profile` | แก้ไขข้อมูลตนเอง (ชื่อ-นามสกุล) | 🔒 Authenticated |
-| `POST`  | `/users/change-password` | เปลี่ยนรหัสผ่านของตนเอง | 🔒 Authenticated |
-| `GET`   | `/users` | ดูรายชื่อผู้ใช้ทั้งหมด (Pagination & Search) | 🔒 `ADMIN`, `SUPERADMIN` |
-| `GET`   | `/users/:id` | ดูข้อมูลผู้ใช้ตาม ID | 🔒 `ADMIN`, `SUPERADMIN` |
-| `PATCH` | `/users/:id/role` | ปรับเปลี่ยน Role ของผู้ใช้ | 🔒 `ADMIN`, `SUPERADMIN` |
+| `GET`   | `/users/profile` | Get current user's profile | 🔒 Any Authenticated User |
+| `PUT`   | `/users/profile` | Update current user's name/details | 🔒 Any Authenticated User |
+| `POST`  | `/users/change-password` | Change current user's password | 🔒 Any Authenticated User |
+| `GET`   | `/users` | List all users with pagination and search | 🔒 `ADMIN`, `SUPERADMIN` |
+| `GET`   | `/users/:id` | Get user profile by ID | 🔒 `ADMIN`, `SUPERADMIN` |
+| `PATCH` | `/users/:id/role` | Update user role | 🔒 `ADMIN`, `SUPERADMIN` |
 
 ---
 
-## 💡 วิธีนำไปใช้กับ Frontend (Integration Guide)
+## 💡 Frontend Integration Guide
 
-### รูปแบบที่ 1: ใช้ Bearer Header (Mobile App / React Native / SPA ทั่วไป)
+### Method A: Using Authorization Header (Mobile App / React Native / SPA)
 
-1. เมื่อเรียก `POST /api/v1/auth/login` สำเร็จ จะได้รับ Response:
+1. When calling `POST /api/v1/auth/login`, extract `accessToken` and `refreshToken` from the JSON response:
 ```json
 {
   "success": true,
@@ -189,32 +195,40 @@ Prefix ทั้งหมดอยู่ที่: `/api/v1`
   }
 }
 ```
-2. ส่ง `Authorization: Bearer <accessToken>` ใน Request Header ทุกครั้งที่เรียก Private API
-3. หากได้ Response Status `401 Unauthorized` ให้ยิง `POST /api/v1/auth/refresh` โดยส่ง `{ "refreshToken": "<refreshToken>" }` ใน Body เพื่อรับ Token ชุดใหม่
+2. Attach header to all protected requests: `Authorization: Bearer <accessToken>`.
+3. If an API returns `401 Unauthorized`, send `POST /api/v1/auth/refresh` with `{ "refreshToken": "<refreshToken>" }` in the body to obtain new tokens.
 
-### รูปแบบที่ 2: ใช้ HttpOnly Cookies (Web App เช่น Next.js / Nuxt / SPA)
+### Method B: Using HttpOnly Cookies (Web App: Next.js / React / Vue)
 
-1. เมื่อเรียก `POST /api/v1/auth/login` เซิร์ฟเวอร์จะแนบ `Set-Cookie` สำหรับ `access_token` และ `refresh_token` ให้โดยอัตโนมัติ
-2. ในฝั่ง Frontend (เช่น `fetch` หรือ `axios`) เพียงแค่เปิด `credentials: 'include'` (fetch) หรือ `withCredentials: true` (axios)
-3. Browser จะจัดการส่ง Cookie ให้เองโดยอัตโนมัติ ป้องกันการขโมย Token จากช่องโหว่ XSS ในฝั่ง JavaScript 100%
+1. When calling `POST /api/v1/auth/login`, the server automatically attaches `access_token` and `refresh_token` as secure `HttpOnly` cookies.
+2. In your frontend HTTP client, simply enable credentials:
+   - **fetch**: `{ credentials: 'include' }`
+   - **axios**: `axios.defaults.withCredentials = true;`
+3. The browser automatically sends cookies on every request. Tokens cannot be accessed via client-side JavaScript, fully mitigating XSS token theft.
 
 ---
 
-## 🛠️ คำสั่งที่ใช้บ่อย (Useful Scripts)
+## 🛠️ Useful Scripts
 
 ```bash
-# รัน Development Server (พร้อม Hot-reload)
+# Run development server with hot-reload
 npm run dev
 
-# Compile TypeScript เป็น JavaScript (โฟลเดอร์ dist/)
+# Compile TypeScript to production JavaScript (dist/)
 npm run build
 
-# รัน Production Server
+# Start production server
 npm start
 
-# เปิด Prisma Studio (GUI จัดการ Database บน Browser)
+# Launch Prisma Studio GUI
 npm run prisma:studio
 
-# ตรวจสอบ Type Checking
+# Run TypeScript type check
 npm run lint
 ```
+
+---
+
+## 📄 License
+
+This project is open-source and licensed under the [MIT License](LICENSE).
